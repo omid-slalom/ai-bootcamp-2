@@ -64,6 +64,19 @@ The project uses npm workspaces to manage the monorepo structure. You can:
 - Run `npm run test:all` to run all tests (unit, integration, and E2E)
 - Work on individual packages by navigating to their directories and using their specific scripts
 
+## API
+
+Base path: `/api/items`. Items are returned in the order they were added.
+
+| Method | Path | Body | Success | Errors |
+|---|---|---|---|---|
+| GET | `/api/items` | - | `200` array of items | `500` |
+| POST | `/api/items` | `{ name }` | `201` created item | `400` missing or blank name, `500` |
+| PUT | `/api/items/:id` | `{ name }` | `200` updated item | `400` invalid ID or name, `404` not found, `500` |
+| DELETE | `/api/items/:id` | - | `200` `{ message, id }` | `400` invalid ID, `404` not found, `500` |
+
+An item has the fields `id`, `name`, `created_at` and `updated_at`. `updated_at` changes when the item is edited.
+
 ## Deployment
 
 General Guidelines, Code Style and Testing Practices will be covered in the bootcamp sessions.

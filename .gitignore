@@ -28,3 +28,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 .last-run.json
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
