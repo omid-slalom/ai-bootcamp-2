@@ -97,8 +97,40 @@ describe('App', () => {
 
     expect(await screen.findByText('New Test Item')).toBeInTheDocument();
     expect(await screen.findByText('Item added')).toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+    expect(screen.getAllByTestId('item-name').map((el) => el.textContent)).toEqual([
+      'Test Item 1',
+      'Test Item 2',
+      'New Test Item',
+    ]);
     expect(screen.getByPlaceholderText('Enter item name')).toHaveValue('');
+  });
+
+  test('keeps the typed name and shows an error toast when adding fails', async () => {
+    const user = userEvent.setup();
+    await renderLoaded();
+    server.use(rest.post('/api/items', (req, res, ctx) => res(ctx.status(500), ctx.json({ error: 'boom' }))));
+
+    await user.type(screen.getByPlaceholderText('Enter item name'), 'Doomed');
+    await user.click(screen.getByRole('button', { name: 'Add Item' }));
+
+    expect(await screen.findByText(/Failed to add item: boom/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter item name')).toHaveValue('Doomed');
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.queryByText('Item added')).not.toBeInTheDocument();
+  });
+
+  test('stays in edit mode and shows an error toast when updating fails', async () => {
+    const user = userEvent.setup();
+    await renderLoaded();
+    server.use(rest.put('/api/items/:id', (req, res, ctx) => res(ctx.status(500), ctx.json({ error: 'boom' }))));
+
+    await user.click(screen.getByRole('button', { name: 'Edit Test Item 1' }));
+    await user.type(screen.getByLabelText('Edit item name'), ' x');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText(/Failed to update item: boom/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Edit item name')).toBeInTheDocument();
+    expect(screen.queryByText('Item updated')).not.toBeInTheDocument();
   });
 
   test('rejects an empty item with an error toast', async () => {

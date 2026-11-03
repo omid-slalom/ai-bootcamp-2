@@ -147,4 +147,33 @@ describe('Items API', () => {
       expect(response.body).toEqual({ error: 'Valid item ID is required' });
     });
   });
+
+  describe('repository failures', () => {
+    let errorSpy;
+    beforeEach(() => {
+      errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+    afterEach(() => errorSpy.mockRestore());
+
+    const failing = () => {
+      const boom = () => {
+        throw new Error('db down');
+      };
+      return createApp({
+        itemsRepository: { findAll: boom, create: boom, update: boom, remove: boom },
+      });
+    };
+
+    it.each([
+      ['get', '/api/items', 'Failed to fetch items'],
+      ['post', '/api/items', 'Failed to create item'],
+      ['put', '/api/items/1', 'Failed to update item'],
+      ['delete', '/api/items/1', 'Failed to delete item'],
+    ])('returns 500 for %s %s', async (method, url, message) => {
+      const response = await request(failing())[method](url).send({ name: 'x' });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: message });
+    });
+  });
 });

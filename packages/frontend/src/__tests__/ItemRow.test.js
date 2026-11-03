@@ -66,4 +66,16 @@ describe('ItemRow', () => {
 
     expect(screen.getByLabelText('Edit item name')).toBeInTheDocument();
   });
+
+  test('discards an abandoned draft when editing again', async () => {
+    const user = userEvent.setup();
+    setup();
+
+    await user.click(screen.getByRole('button', { name: 'Edit Buy milk' }));
+    await user.type(screen.getByLabelText('Edit item name'), ' junk');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Edit Buy milk' }));
+
+    expect(screen.getByLabelText('Edit item name')).toHaveValue('Buy milk');
+  });
 });
